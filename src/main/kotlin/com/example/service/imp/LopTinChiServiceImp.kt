@@ -56,4 +56,8 @@ class LopTinChiServiceImp : LopTinChiService {
     ): Map<String, Any?> {
         return DatabaseFactory.dbUpdate("CALL sp_chotDiemDanhBuoiHoc ( $maLTC, '$ngayHoc', '$tietHoc', ${confirmAll ?: false}, '$ghiChu')")
     }
+
+    override suspend fun layGhiChuBuoiHocCuaLTC(maLTC: Int, ngayHoc: Date, tietHoc: String): Map<String, Any?> {
+        return DatabaseFactory.dbUpdate("CALL sp_layGhiChuCuaBuoiHoc($maLTC,'$ngayHoc','$tietHoc')")
+    }
 }

@@ -233,8 +233,7 @@ fun Routing.lopTinChi() {
                         )
                     }
                     call.respond(
-                        HttpStatusCode.InternalServerError,
-                        mapOf("message" to "Lỗi thao tác dữ liệu từ máy chủ")
+                        HttpStatusCode.InternalServerError, mapOf("message" to "Lỗi thao tác dữ liệu từ máy chủ")
                     )
                 }
             } else {
@@ -260,9 +259,7 @@ fun Routing.lopTinChi() {
             if (maltc != null) {
                 try {
                     val list = lopTinChiService.xuatThongTinTatCaSinhVienCuaLTC(
-                        maltc,
-                        filterByMSSV,
-                        filterByTrangThaiTheDiemDanh
+                        maltc, filterByMSSV, filterByTrangThaiTheDiemDanh
                     )
 
                     call.respond(HttpStatusCode.OK, mapOf("list" to list))
@@ -319,11 +316,7 @@ fun Routing.lopTinChi() {
             try {
                 if (maltc != null && tiethoc != null && ngayhoc != null) {
                     val list = lopTinChiService.layDanhSachDiemDanhSinhVienTheoTKB_LTC(
-                        maltc,
-                        ngayhoc,
-                        tiethoc,
-                        filterbyname,
-                        filterbyvang
+                        maltc, ngayhoc, tiethoc, filterbyname, filterbyvang
                     )
 
                     call.respond(HttpStatusCode.OK, mapOf("list" to list))
@@ -334,7 +327,26 @@ fun Routing.lopTinChi() {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("message" to "Chưa thể tải danh sách sinh viên"))
             }
         }
+        get("/buoihoc/ghichu"){
+            val maltc = call.request.queryParameters["maltc"]?.let { it.toInt() }
+            val tiethoc = call.request.queryParameters["tiethoc"]?.let { it }
+            val ngayhoc = call.request.queryParameters["ngayhoc"]?.let {
+                Date.valueOf(it)
+            }
+            if (maltc != null && tiethoc != null && ngayhoc != null) {
+                val ghiChu = lopTinChiService.layGhiChuBuoiHocCuaLTC(
+                    maltc, ngayhoc, tiethoc
+                )
+
+                call.respond(HttpStatusCode.OK, ghiChu)
+            } else {
+                call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Vui lòng chọn đủ thông tin"))
+            }
+
+        }
     }
+
+
 
     route("/ltc/sinhvien") {
         val lopTinChiService: LopTinChiService = LopTinChiServiceImp()
@@ -345,18 +357,24 @@ fun Routing.lopTinChi() {
             val masv = call.request.queryParameters["masv"]?.let {
                 it
             }
+            try {
+                if (masv != null && maltc == null) {
+                    // Xử lí lấy danh sách lớp tín chỉ của sinh viên
+                    val list = lopTinChiService.xuatDanhSachLTCCuaMotSV(masv)
 
-            if (masv != null && maltc == null) {
-                // Xử lí lấy danh sách lớp tín chỉ của sinh viên
-                val list = lopTinChiService.xuatDanhSachLTCCuaMotSV(masv)
-
-                call.respond(HttpStatusCode.OK, mapOf("list" to list))
-            } else if (maltc == null || masv == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("messsage" to "Vui lòng nhập đủ thông tin"))
-            } else { // maltc != null && masv != null
-                val list = lopTinChiService.danhSachQuaTrinhDiemDanhCuaMotSinhVienLTC(maltc, masv)
-                call.respond(HttpStatusCode.OK, mapOf("list" to list))
+                    call.respond(HttpStatusCode.OK, mapOf("list" to list))
+                } else if (maltc == null || masv == null) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("messsage" to "Vui lòng nhập đủ thông tin"))
+                } else { // maltc != null && masv != null
+                    val list = lopTinChiService.danhSachQuaTrinhDiemDanhCuaMotSinhVienLTC(maltc, masv)
+                    call.respond(HttpStatusCode.OK, mapOf("list" to list))
+                }
+            } catch (e: SQLException) {
+                call.respond(
+                    HttpStatusCode.InternalServerError, mapOf("message" to "Chưa thể tải danh sách quá trình điểm danh")
+                )
             }
+
         }
     }
 
