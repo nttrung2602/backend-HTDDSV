@@ -9,12 +9,17 @@ class LopTinChiServiceImp : LopTinChiService {
         return DatabaseFactory.dbQuery("CALL sp_xuatLopTinChiTheoMaGV (${magv})")
     }
 
-    override suspend fun xuatThongTinTatCaSinhVienCuaLTC(maltc: Int,filterByMSSV:String,filterByTrangThaiTheDiemDanh:Boolean): List<Map<String, Any?>> {
+    override suspend fun xuatThongTinTatCaSinhVienCuaLTC(
+        maltc: Int,
+        filterByMSSV: String,
+        filterByTrangThaiTheDiemDanh: Boolean
+    ): List<Map<String, Any?>> {
         return DatabaseFactory.dbQuery("CALL sp_xuatThongTinTatCaSinhVienCuaLopTinChi (${maltc}, '${filterByMSSV}', $filterByTrangThaiTheDiemDanh)")
     }
 
     override suspend fun danhSachQuaTrinhDiemDanhCuaMotSinhVienLTC(maltc: Int, masv: String): List<Map<String, Any?>> {
-        return DatabaseFactory.dbQuery("CALL sp_quaTrinhDiemDanhCuaMotSinhVienTheoLTC (${maltc}, '$masv' );")
+        val getAll = -1
+        return DatabaseFactory.dbQuery("CALL sp_quaTrinhDiemDanhCuaMotSinhVienTheoLTC (${maltc}, '$masv', $getAll);")
     }
 
     override suspend fun layDanhSachDiemDanhSinhVienTheoTKB_LTC(
@@ -59,5 +64,9 @@ class LopTinChiServiceImp : LopTinChiService {
 
     override suspend fun layGhiChuBuoiHocCuaLTC(maLTC: Int, ngayHoc: Date, tietHoc: String): Map<String, Any?> {
         return DatabaseFactory.dbUpdate("CALL sp_layGhiChuCuaBuoiHoc($maLTC,'$ngayHoc','$tietHoc')")
+    }
+
+    override suspend fun layChiTietBuoiHocVangCuaMotSinhVien(maLTC: Int, maSV: String): List<Map<String, Any?>> {
+        return DatabaseFactory.dbQuery("CALL sp_quaTrinhDiemDanhCuaMotSinhVienTheoLTC ($maLTC,'$maSV', 0)")
     }
 }

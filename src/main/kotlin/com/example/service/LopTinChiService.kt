@@ -14,4 +14,6 @@ interface LopTinChiService {
     suspend fun xuatDanhSachLTCCuaMotSV(masv: String) : List<Map<String, Any?>>
     suspend fun chotDiemDanhBuoiHoc(maLTC: Int, ngayHoc: Date, tietHoc: String, confirmAll: Boolean?,ghiChu:String=""): Map<String, Any?>
     suspend fun layGhiChuBuoiHocCuaLTC(maLTC:Int, ngayHoc:Date,tietHoc:String):Map<String,Any?>
+
+    suspend fun layChiTietBuoiHocVangCuaMotSinhVien(maLTC: Int,maSV:String):List<Map<String,Any?>>
 }

@@ -1,8 +1,6 @@
 package com.example.plugins
 
-import com.example.dto.request.DangKyTheDiemDanh
-import com.example.dto.request.InfoDiemDanh
-import com.example.dto.request.ThongTinGiangVienRequest
+import com.example.dto.request.*
 import com.example.service.AuthService
 import com.example.service.LopTinChiService
 import com.example.service.imp.AuthServiewImp
@@ -24,7 +22,7 @@ fun Application.configureRouting() {
         }
     }
     routing {
-        giangVien()
+        auth()
 
         lopTinChi()
         dangKy()
@@ -37,31 +35,54 @@ fun Application.configureRouting() {
     }
 }
 
-fun Routing.giangVien() {
-    route("/giangvien") {
+fun Routing.auth() {
+    route("/auth") {
         val authService: AuthService = AuthServiewImp()
-        post("/auth") {
-            val maGV = call.request.queryParameters["magv"]?.let { it.toInt() }
+        post("/giangvien") {
 
+            try {
+//                val maGV = call.request.queryParameters["magv"]?.let { it.toIntOrNull()}
+                val loginRequest=call.receive<LoginGiangVienRequest>()
+//                if (maGV != null) {
+                    try {
+                        val message = authService.xacThucMaGV(loginRequest.username,loginRequest.password)
 
-            if (maGV != null) {
-                try {
-                    val message = authService.xacThucMaGV(maGV)
-
-                    call.respond(HttpStatusCode.OK, message)
-                } catch (e: SQLException) {
-                    if (e.errorCode == 500) {
-                        call.respond(
-                            HttpStatusCode.InternalServerError,
-                            mapOf("message" to (e.message?.substringAfter(' ') ?: "Lỗi chưa được xác định!"))
-                        )
+                        call.respond(HttpStatusCode.OK, message)
+                    } catch (e: SQLException) {
+                        if (e.errorCode == 500) {
+                            call.respond(
+                                HttpStatusCode.InternalServerError,
+                                mapOf("message" to (e.message?.substringAfter(' ') ?: "Lỗi chưa được xác định!"))
+                            )
+                        }
                     }
-                }
-            } else {
-                call.respond(HttpStatusCode.BadRequest, "Yêu cầu mã giảng viên!")
+//                } else {
+//                    call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Mã giảng viên không hợp lệ!"))
+//                }
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, mapOf("message" to "Mã giảng viên không tồn tại!"))
             }
 
 
+
+
+        }
+
+        post("/sinhvien") {
+            val loginRequest=call.receive<LoginSinhVienRequest>()
+//            val maSV = call.request.queryParameters["masv"] ?: ""
+
+            try {
+                val rs = authService.xacThucMaSV(loginRequest.username,loginRequest.password)
+                call.respond(HttpStatusCode.OK, rs)
+            } catch (e: SQLException) {
+                if (e.errorCode == 500) {
+                    call.respond(
+                        HttpStatusCode.InternalServerError,
+                        mapOf("message" to (e.message?.substringAfter(' ') ?: "Lỗi chưa xác định!"))
+                    )
+                }
+            }
         }
     }
 }
@@ -303,6 +324,26 @@ fun Routing.lopTinChi() {
             }
         }
 
+        get("/nhacnhosinhvien/chitiet"){
+            val maltc = call.request.queryParameters["maltc"]?.let {
+                it.toInt()
+            }
+            val masv = call.request.queryParameters["masv"]?.let {
+                it
+            }
+            try {
+                if (masv != null && maltc != null) {
+                    // Xử lí lấy danh sách lớp tín chỉ của sinh viên
+                    val list = lopTinChiService.layChiTietBuoiHocVangCuaMotSinhVien(maltc, masv)
+                    call.respond(HttpStatusCode.OK, mapOf("list" to list))
+                }
+            } catch (e: SQLException) {
+                call.respond(
+                    HttpStatusCode.InternalServerError, mapOf("message" to "Lỗi hệ thống. Thử lại")
+                )
+            }
+        }
+
         get("/diemdanh") {
             val maltc = call.request.queryParameters["maltc"]?.let { it.toInt() }
             val tiethoc = call.request.queryParameters["tiethoc"]?.let { it }
@@ -327,7 +368,7 @@ fun Routing.lopTinChi() {
                 call.respond(HttpStatusCode.InternalServerError, mapOf("message" to "Chưa thể tải danh sách sinh viên"))
             }
         }
-        get("/buoihoc/ghichu"){
+        get("/buoihoc/ghichu") {
             val maltc = call.request.queryParameters["maltc"]?.let { it.toInt() }
             val tiethoc = call.request.queryParameters["tiethoc"]?.let { it }
             val ngayhoc = call.request.queryParameters["ngayhoc"]?.let {
