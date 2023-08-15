@@ -103,10 +103,19 @@ fun Routing.dangKy() {
                         dangKyService.capNhatTheDiemDanh(request.thediemdanh, request.masv, maLTC, ngayHoc, tietHoc)
                     call.respond(HttpStatusCode.OK, message)
                 } catch (e: SQLException) {
+
+                    if (e.errorCode == 500) {
+                        call.respond(
+                            HttpStatusCode.InternalServerError,
+                            mapOf("message" to (e.message?.substringAfter(' ') ?: "Lỗi chưa được xác định!"))
+                        )
+                    }
 //                call.respond(HttpStatusCode.InternalServerError, mapOf("message" to "Lỗi thao tác dữ liệu từ máy chủ"))
                 }
+            }else{
+                call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Yêu cầu nhập đủ thông tin lớp học!"))
+
             }
-            call.respond(HttpStatusCode.BadRequest, mapOf("message" to "Yêu cầu nhập đủ thông tin!"))
         }
 
         post("/thediemdanh/huy") {
@@ -120,7 +129,12 @@ fun Routing.dangKy() {
                     call.respond(HttpStatusCode.OK, message)
 
                 } catch (e: SQLException) {
-//                    call.respond(HttpStatusCode.InternalServerError, mapOf("message" to "Lỗi thao tác dữ liệu từ máy chủ"))
+                    if (e.errorCode == 500) {
+                        call.respond(
+                            HttpStatusCode.InternalServerError,
+                            mapOf("message" to (e.message?.substringAfter(' ') ?: "Lỗi chưa được xác định!"))
+                        )
+                    }
                 }
 
             } else {
